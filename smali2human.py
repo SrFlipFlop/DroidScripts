@@ -80,15 +80,15 @@ class SmaliAnalyzer:
 				'type': self.method_type(f),
 				'params': self.method_params(f),
 				'return': self.method_return(f),
-				'content': self.method_content(f),
+				'content': self.method_content(f, content),
 			}
 			self.actual_json['methods'].append(method)
 
 	def method_name(self, name):
-		return ""
+		return name.split(' ')[-1].split('(')[0]
 
 	def method_type(self, name):
-		return ""
+		return name.split(' ')[1:-1]
 
 	def method_params(self, name):
 		params = []
@@ -115,14 +115,69 @@ class SmaliAnalyzer:
 			return SMALI_ENCODE[ret]
 		return ret
 
-	def method_content(self, name):
+	def method_content(self, name, content):
 		#TODO: do the same with a regex
-		return []
-
+		method_content = []
+		method = False
+		for line in content.split('\n'):
+			if name in line:
+				method = True
+				method_content.append(line)
+			elif method:
+				method_content.append(line)
+			elif '.end method' in line and method:
+				method_content.append(line)
+				return method_content
+		return method_content
+		
 	def fields(self, content):
+		fields = []
 		regex = r'(\.field.*)'
-		fields = re.findall(regex, content)
-		#print(fields)
+		result = re.findall(regex, content)
+		for f in result:
+			field = {
+				'name': self.field_name(f),
+				'content': self.field_content(f),
+				'type': self.field_type(f),
+				'value': self.field_value(f),
+			}
+			print(field)
+			fields.append(field)
+		return fields
+		#.field static final DEFAULT_DEVICE_ID:Ljava/lang/String; = "000000000000000"
+
+	def field_name(self, name):
+		if '=' in name:
+			return name.split(' ')[-3].split(':')[0]
+		else:
+			return name.split(' ')[-1].split(':')[0]
+
+	def field_content(self, name):
+		if '=' in name:
+			var = name.split(' ')[-3].split(':')[1]
+		else:
+			var = name.split(' ')[-1].split(':')[1]
+
+		if var.startswith('['):
+			param = var.replace('[','')
+			array = SMALI_ENCODE[param] if param in SMALI_ENCODE else param
+			return array + '[]'
+		elif var.startswith('L'):
+			return var.replace(';', '')
+		elif var in SMALI_ENCODE:
+			return SMALI_ENCODE[var]
+
+	def field_type(self, name):
+		if '=' in name:
+			return name.split(' ')[1:-3]
+		else:
+			return name.split(' ')[1:-1]
+
+	def field_value(self, name):
+		if '=' in name:
+			return name.split('=')[-1]
+		else:
+			return ""
 
 	def charge_output(self):
 		if isfile(self.output):
