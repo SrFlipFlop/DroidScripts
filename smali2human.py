@@ -92,22 +92,20 @@ class SmaliAnalyzer:
 
 	def method_params(self, name):
 		params = []
+
 		r1 = re.findall(r'\((.*)\)', name)
-		if r1 != ['']:
-			r2 = re.findall(r'(L.*);|(\[L.*);|(\[[BCDFIJSZ])|([BCDFIJSZ])', r1[0])
-			for group in r2:
-				for field in group:
-					if field != '':
-						if field.startswith('['):
-							param = field.replace('[','')
-							if param in SMALI_ENCODE:
-								params.append(SMALI_ENCODE[param] + '[]')
-							else:
-								params.append(param + '[]')
-						elif field.startswith('L'):
-							params.append(field)
-						elif field in SMALI_ENCODE:
-							params.append(SMALI_ENCODE[field])
+		r2 = re.findall(r'(L.*);|(\[L.*);|(\[[BCDFIJSZ])|([BCDFIJSZ])', r1[0])
+		for group in r2:
+			for field in group:
+				if field != '':
+					if field.startswith('['):
+						param = field.replace('[','')
+						array = SMALI_ENCODE[param] if param in SMALI_ENCODE else param
+						params.append( array + '[]')
+					elif field.startswith('L'):
+						params.append(field)
+					elif field in SMALI_ENCODE:
+						params.append(SMALI_ENCODE[field])
 
 		return params
 
