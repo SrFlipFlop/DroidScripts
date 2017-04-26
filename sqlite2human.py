@@ -1,8 +1,9 @@
 #!/usr/bin/pyhon
 # -*- coding: utf-8 -*-
-import sqlite3 as sql
 import os
 import sys
+import argparse
+import sqlite3 as sql
 
 def analyze_db(db_path):
     connection = sql.connect(db_path)
@@ -68,20 +69,29 @@ def print_db(name, db):
         web.write(html_script)
         web.write(html_tail)
 
-def main(file):
-    #try:
-    analyze_db(file)
-    #except Exception as e:
-    #    print("[-] Error: {0}".format(e))
-        
-    #for root, dirs, files in os.walk('./'):
-    #    try:  
-    #        map(analyze_db, filter(lambda x: x.endswith('.sqlite'), files))
-    #    except Exception as e:
-    #        print e
+def main():
+    description = 'sqlite2human'
+    examples = 'Example: sqlite2human -d /path/to/databases/ -r OR sqlite2human -f /path/to/database.sqlite'
+    parser = argparse.ArgumentParser(description=description, epilog=examples)
+
+    parser.add_argument('-r', '--recursive', help='First argument', action='store_true')
+    parser.add_argument('-f', '--file', help='First argument')
+    parser.add_argument('-d', '--directory', help='First argument')
+
+    output = parser.parse_args()
+
+    if output.directory and not output.recursive:
+        print "[-] Specify a directory with recursive option"
+
+    if output.directory and output.recursive:
+        for root, dirs, files in os.walk('./'):
+            try:  
+                map(analyze_db, filter(lambda x: x.endswith('.sqlite'), files))
+            except Exception as e:
+                print e
+
+    if output.file:
+        analyze_db(output.file)
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        main(sys.argv[1])
-    else:
-        print("[-] Usage: sqlite2human.py /path/to/db/")
+    main()
