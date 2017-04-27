@@ -2,6 +2,7 @@
 from __future__ import print_function
 
 import os
+import argparse
 
 def insert_log(file_name):
     lines = []
@@ -44,11 +45,33 @@ def insert_log(file_name):
             smali.write(line)         
 
 def main():
-    for root, dirs, files in os.walk('./'):
-        try:
-            map(insert_log, filter(lambda x: x.endswith('.smali'), map(lambda y: "{0}{1}".format(root,y) if root.endswith('/') else "{0}/{1}".format(root,y), files)))
-        except:
-            print("ERROR {0}".format(root))
+    description = 'logall'
+    examples = 'Example: logall -d /path/to/databases/ -r OR logall -f /path/to/database.smali'
+    parser = argparse.ArgumentParser(description=description, epilog=examples)
+
+    parser.add_argument('-r', '--recursive', help='First argument', action='store_true')
+    parser.add_argument('-f', '--file', help='First argument')
+    parser.add_argument('-d', '--directory', help='First argument')
+
+    output = parser.parse_args()
+
+    if output.directory and output.recursive:
+        for root, dirs, files in os.walk('./'):
+            try:
+                map(insert_log, filter(lambda x: x.endswith('.smali'), map(lambda y: "{0}{1}".format(root,y) if root.endswith('/') else "{0}/{1}".format(root,y), files)))
+            except:
+                print("ERROR {0}".format(root))
+
+    if output.directory and not output.recursive:
+        for root, dirs, files in os.walk('./'):
+            try:
+                map(insert_log, filter(lambda x: x.endswith('.smali'), map(lambda y: "{0}{1}".format(root,y) if root.endswith('/') else "{0}/{1}".format(root,y), files)))
+            except:
+                print("ERROR {0}".format(root))
+            break
+
+    if output.file:
+        insert_log(output.file)
 
 if __name__ == "__main__":
     main()
