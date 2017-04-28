@@ -2,5 +2,5 @@
 
 * *extract-dir*: extract the private directory of a specified application.
 * *smali2human*: tool to extract information about the Smali files (methods, fields, libraries, ...).
-* *logall*: put logs in every class to trace the application execution (TODO: add command line menu to specify files)
+* *logall*: put logs in every class to trace the application execution.
 * *sqlite2human*: generate a static HTML page with the SQLite data in a Datatables (TODO: different types of output JSON, CVS, ...)
